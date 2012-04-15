@@ -1,14 +1,8 @@
-Youtube Video URLs
+Youget
 ------------------
 
-Requirements to run this program:
-All files in the "Build" directory
-Microsoft Visual C++ 2008 Redistributable
-To use the "Launch URL with command" feature, you need the below:
-A command text file. See "launchcommand.txt" in the same directory as these instructions for the requirements to create one.
-
 How to use this program:
-Run "YoutubeVideoURLs.exe" to launch this application.
+Launch Youget
 Under "Youtube URL", put in the full URL to the Youtube video (ex. http://www.youtube.com/watch?v=1234567&...)
 Click "Get Data". The application may freeze for a few seconds. A dialog box will pop up when it has finished retrieving all the information.
 Under "Video URL Table" there will be the size of the video file (Does not always show up), the type of video file, codecs (seems to be audio codecs. Not always present), and the direct URL to that video. Double-clicking on any cell in the table will cause a dialoge box to open with that cell's text which is selectable.
