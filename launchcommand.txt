@@ -1,0 +1,18 @@
+How to structure this file:
+{A||B}
+{A||B}
+...
+
+A is the friendly name that will show up in the combo box when you run this program.
+
+B is the shell command you pass in to run a program with the URL parameter. {URL} will be subsituted by the actual URL to the video in the program. It's recommended to put quotes around {URL} so the program will read the URL correctly. The program may treat different parts of the URL as different parameters if you don't.
+For example, let's say the command "vlc" will run VLC, and inserting a video URL right after will open VLC and stream that video. Also you want the friendly name to be "VLC".
+This is how you would write it:
+{VLC||vlc "{URL}"}
+
+Let's say you want to do the similar thing with Firefox with the command being "firefox" and the friendly name being "Firefox":
+{Firefox||firefox "{URL}"}
+
+If you want to specify multiple commands, you can do so by simply listing them:
+{VLC||vlc "{URL}"}
+{Firefox||firefox "{URL}"}
