@@ -1,11 +1,13 @@
 Youget
 ------------------
 
+Youget is a tool to get information, download, and play Youtube videos. Written in Python and PyQt
+
 How to use this program:
 Launch Youget
 Under "Youtube URL", put in the full URL to the Youtube video (ex. http://www.youtube.com/watch?v=1234567&...)
 Click "Get Data". The application may freeze for a few seconds. A dialog box will pop up when it has finished retrieving all the information.
-Under "Video URL Table" there will be the size of the video file (Does not always show up), the type of video file, codecs (seems to be audio codecs. Not always present), and the direct URL to that video. Double-clicking on any cell in the table will cause a dialoge box to open with that cell's text which is selectable.
+Under "Video URL Table" there will be the quality of the video, video size (Does not always show up), the type of video file, codecs (seems to be audio codecs. Not always present), and the direct URL to that video. Double-clicking on any cell in the table will cause a dialoge box to open with that cell's text which is selectable.
 Click "Clear Data" to clear all the information fields. You do not need to use this if you change Youtube URLs and click "Get Data", since the fields will update automatically.
 
 At the bottom, the "Launch URL with command" feature will only work if a command text file is created.

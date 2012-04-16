@@ -73,10 +73,10 @@ def getvideourl(DATA):
     Takes in the data from getyoutubeblob()
     Returns URLS as well as meta-information about the video if it's avaliable.
     '''
-    urlre = re.compile(r'[,=]url=(?P<VideoURL>http://.+?&id=.+?)&(.*?&type=video/(?P<VideoType>.+?)(&|(;\+codecs="(?P<VideoCodecs>.*?)"&))(url=)?)?')
+    urlre = re.compile(r'[,=]url=(?P<VideoURL>http://.+?&id=.+?)((&quality=(?P<Quality>.+?)&)|&)(.*?&type=video/(?P<VideoType>.+?)(&|(;\+codecs="(?P<VideoCodecs>.*?)"&))(url=)?)?')
     urldata = dict()
     for match in urlre.finditer(DATA):
-        urldata[match.group("VideoURL")] = [match.group("VideoType"), match.group("VideoCodecs")]
+        urldata[match.group("VideoURL")] = [match.group("VideoType"), match.group("VideoCodecs"), match.group("Quality")]
     return urldata
 
 def getvideosize(URL):

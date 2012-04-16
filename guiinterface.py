@@ -16,6 +16,8 @@
 '''
 from PyQt4 import QtCore, QtGui
 import Youtube
+import urllib.request
+import time
 
 class interface(QtGui.QMainWindow):
     def __init__(self):
@@ -57,9 +59,9 @@ class interface(QtGui.QMainWindow):
 
         urltablelabel = QtGui.QLabel("Video URL Table:")
 
-        self.urltable = QtGui.QTableWidget(0, 4)
-        self.urltable.setHorizontalHeaderLabels(("Size (in bytes)", "Type", "Codecs", "URL"))
-        self.urltable.horizontalHeader().setResizeMode(3, QtGui.QHeaderView.Stretch)
+        self.urltable = QtGui.QTableWidget(0, 5)
+        self.urltable.setHorizontalHeaderLabels(("Quality", "Size (in bytes)", "Type", "Codecs", "URL"))
+        self.urltable.horizontalHeader().setResizeMode(4, QtGui.QHeaderView.Stretch)
         self.urltable.setShowGrid(True)
         self.urltable.verticalHeader().hide()
         self.urltable.itemDoubleClicked.connect(self.displayitem)
@@ -79,13 +81,31 @@ class interface(QtGui.QMainWindow):
 
         self.commandcombo = QtGui.QComboBox()
 
-        commandlayout = QtGui.QHBoxLayout()
-        commandlayout.addWidget(self.commandfilepath)
-        commandlayout.addWidget(commandfilereload)
-        commandlayout.addWidget(commandfileload)
+        commandfilelayout = QtGui.QHBoxLayout()
+        commandfilelayout.addWidget(self.commandfilepath)
+        commandfilelayout.addWidget(commandfilereload)
+        commandfilelayout.addWidget(commandfileload)
 
         commandlaunch = QtGui.QPushButton('Launch command')
         commandlaunch.clicked.connect(self.sendcommand)
+
+        advancedlayout = QtGui.QVBoxLayout()
+        advancedlayout.addWidget(commandlabel)
+        advancedlayout.addLayout(commandfilelayout)
+        advancedlayout.addWidget(self.commandcombo)
+        advancedlayout.addWidget(commandlaunch)
+
+        advancedlayoutbutton = QtGui.QPushButton('Advanced Options')
+        advancedlayoutbutton.clicked.connect(self.toggleadvancedlayout)
+
+        downloadvideobutton = QtGui.QPushButton('Download selected URL')
+        downloadvideobutton.clicked.connect(self.downloadvideo)
+
+        self.advancedlayoutwidget = QtGui.QWidget()
+        self.advancedlayoutwidget.setLayout(advancedlayout)
+        self.advancedlayoutwidget.hide()
+
+        self.advancedlayouthidden = True
 
         mainlayout = QtGui.QVBoxLayout()
         mainlayout.addLayout(youtubeurllayout)
@@ -94,10 +114,9 @@ class interface(QtGui.QMainWindow):
         mainlayout.addLayout(descriptionlayout)
         mainlayout.addWidget(urltablelabel)
         mainlayout.addWidget(self.urltable)
-        mainlayout.addWidget(commandlabel)
-        mainlayout.addLayout(commandlayout)
-        mainlayout.addWidget(self.commandcombo)
-        mainlayout.addWidget(commandlaunch)
+        mainlayout.addWidget(downloadvideobutton)
+        mainlayout.addWidget(advancedlayoutbutton)
+        mainlayout.addWidget(self.advancedlayoutwidget)
 
         mainlayoutwidget = QtGui.QWidget()
         mainlayoutwidget.setLayout(mainlayout)
@@ -144,6 +163,7 @@ class interface(QtGui.QMainWindow):
                 TypeItem = QtGui.QTableWidgetItem(str((urldict[URL])[0]))
                 CodecItem = QtGui.QTableWidgetItem(str((urldict[URL])[1]))
                 videosize = Youtube.getvideosize(URL)
+                QualityItem = QtGui.QTableWidgetItem(str((urldict[URL])[2]))
                 if videosize == None:
                     videosize = "N\A"
                 else:
@@ -153,12 +173,14 @@ class interface(QtGui.QMainWindow):
                 TypeItem.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
                 CodecItem.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
                 SizeItem.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+                QualityItem.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
 
                 self.urltable.insertRow(i)
-                self.urltable.setItem(i, 0, SizeItem)
-                self.urltable.setItem(i, 1, TypeItem)
-                self.urltable.setItem(i, 2, CodecItem)
-                self.urltable.setItem(i, 3, URLItem)
+                self.urltable.setItem(i, 0, QualityItem)
+                self.urltable.setItem(i, 1, SizeItem)
+                self.urltable.setItem(i, 2, TypeItem)
+                self.urltable.setItem(i, 3, CodecItem)
+                self.urltable.setItem(i, 4, URLItem)
                 i = i+1
             QtGui.QMessageBox.information(self, "Operation completed", "The youtube video data has been retrieved sucessfully.")
 
@@ -166,19 +188,23 @@ class interface(QtGui.QMainWindow):
         self.displayitemdialog = DisplayText(self.urltable.currentItem().text())
 
     def getcommandfilepath(self):
-        if QtGui.QFileDialog.getOpenFileName(self, "Choose the command text file", '', "All Files (*);;Text Files (*.txt)"):
-            self.commandfilepath.setText()
+        newpath = QtGui.QFileDialog.getOpenFileName(self, "Choose the command text file", '', "All Files (*);;Text Files (*.txt)")
+        if newpath:
+            self.commandfilepath.setText(newpath)
 
     def loadcommandfile(self):
         self.commanddict = Youtube.loadlaunchcommand(self.commandfilepath.text())
-        self.clearcommandcombo()
-        self.populatecommandcombo()
+        if self.commanddict:
+            self.clearcommandcombo()
+            self.populatecommandcombo()
+        else:
+            QtGui.QMessageBox.critical(self, "Error while loading command text file", "Unable to load the file from the current path.\nThe operation has aborted.", "OK")
 
     def sendcommand(self):
         try:
-            URL = self.urltable.item(self.urltable.currentRow(), 3).text()
+            URL = self.urltable.item(self.urltable.currentRow(), 4).text()
         except:
-            QtGui.QMessageBox.critical(self, "Error while launching command", "No URL selected or unable to launch command.\nThe operation has aborted.", "OK")
+            QtGui.QMessageBox.critical(self, "Error while launching command", "No URL selected.\nThe operation has aborted.", "OK")
             return None
         if self.commanddict:
             Command = self.commanddict[self.commandcombo.currentText()]
@@ -195,6 +221,64 @@ class interface(QtGui.QMainWindow):
 
     def clearcommandcombo(self):
         self.commandcombo.clear()
+
+    def toggleadvancedlayout(self):
+        if self.advancedlayouthidden:
+            self.advancedlayouthidden = False
+            self.advancedlayoutwidget.show()
+        else:
+            self.advancedlayouthidden = True
+            self.advancedlayoutwidget.hide()
+
+    def downloadvideo(self):
+        try:
+            URL = self.urltable.item(self.urltable.currentRow(), 4).text()
+        except:
+            QtGui.QMessageBox.critical(self, "Error while downloading video", "No URL selected.\nThe operation has aborted.", "OK")
+            return None
+        newpath = QtGui.QFileDialog.getSaveFileName(self, "Choose a location to save the video", '', "All Files (*)")
+        if newpath:
+            try:
+                newfile = open(newpath, mode='w')
+                newfile.close()
+            except:
+                QtGui.QMessageBox.critical(self, "Error while downloading video", "Could not save the video to the specified location.\nThe operation has aborted.", "OK")
+                return None
+            global Downloaddialog
+            displaydownloaddialog()
+            try:
+                urllib.request.urlretrieve(URL, filename=newpath, reporthook=Downloaddialog.updatebar)
+            except:
+                QtGui.QMessageBox.critical(self, "Error while downloading video", "The operation failed while downloading.\nThe operation has aborted.", "OK")
+                Downloaddialog.close()
+                del Downloaddialog
+
+class downloadprogress(QtGui.QDialog):
+    def __init__(self):
+        super(downloadprogress, self).__init__()
+
+        infolabel = QtGui.QLabel("Download Progress:")
+
+        self.downloadbar = QtGui.QProgressBar()
+        self.downloadbar.setRange(0, 100)
+        self.downloadbar.setValue(0)
+
+        mainlayout = QtGui.QVBoxLayout()
+        mainlayout.addWidget(infolabel)
+        mainlayout.addWidget(self.downloadbar)
+
+        self.setLayout(mainlayout)
+
+        self.setWindowTitle("Downloading Youtube video...")
+
+        self.show()
+
+    def updatebar(self, count, blockSize, totalSize):
+        percent = int(count*blockSize*100/totalSize)
+        self.downloadbar.setValue(percent)
+        if percent >= 100:
+            time.sleep(1)
+            self.close()
 
 class DisplayText(QtGui.QDialog):
     def __init__(self, Message):
@@ -265,9 +349,15 @@ def exceptionhookstart(*args):
     ExceptionDialog = GeneralExceptiondialog(*args)
     ExceptionDialog.show()
 
+def displaydownloaddialog():
+    global Downloaddialog
+    Downloaddialog = downloadprogress()
+
 ToolName = "Youget"
 
 ExceptionDialog = None
+
+Downloaddialog = False
 
 if __name__ == '__main__':
     import sys
