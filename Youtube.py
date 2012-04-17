@@ -63,8 +63,10 @@ def getflashvars(youtubedata):
     flashvarsmatch = re.search(r'.*?flashvars=\\"(?P<VideoData>.*)\\" *allowscriptaccess', youtubedata)
     if not flashvarsmatch == None:
         Stuff = flashvarsmatch.group("VideoData")
-    while "%" in Stuff:
+    for iteration in range(0, 20):
         Stuff = urllib.parse.unquote(Stuff)
+        if not ("%" in Stuff):
+            break
     Stuff = bytes(Stuff, 'UTF-8').decode('unicode-escape')
     return Stuff
 
