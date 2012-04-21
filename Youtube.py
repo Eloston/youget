@@ -51,8 +51,8 @@ def getmeta(youtubedata):
     Takes data from downloadpage()
     Retrieves title and description from data.
     '''
-    titlematch = re.match(r'<meta name="title" content="(?P<Title>.*?)">', youtubedata)
-    descriptionmatch = re.match(r'<p id="eow-description"( )?>(?P<Description>.*?)</p>', youtubedata)
+    titlematch = re.search(r'<meta name="title" content="(?P<Title>.*?)">', youtubedata)
+    descriptionmatch = re.search(r'<p id="eow-description"( )?>(?P<Description>.*?)</p>', youtubedata)
     if titlematch == None:
         title = "N/A"
     else:
