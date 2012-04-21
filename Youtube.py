@@ -51,17 +51,27 @@ def getmeta(youtubedata):
     Takes data from downloadpage()
     Retrieves title and description from data.
     '''
-    titlematch = re.search(r'<meta name="title" content="(?P<Title>.*?)">', youtubedata)
-    descriptionmatch = re.search(r'<p id="eow-description"( )?>(?P<Description>.*?)</p>', youtubedata)
-    return [titlematch.group("Title"), descriptionmatch.group("Description")]
+    titlematch = re.match(r'<meta name="title" content="(?P<Title>.*?)">', youtubedata)
+    descriptionmatch = re.match(r'<p id="eow-description"( )?>(?P<Description>.*?)</p>', youtubedata)
+    if titlematch == None:
+        title = "N/A"
+    else:
+        title = titlematch.group("Title")
+    if descriptionmatch == None:
+        description = "N/A"
+    else:
+        description = descriptionmatch.group("Description")
+    return [title, description]
 
 def getflashvars(youtubedata):
     '''
     Takes data from downloadpage()
     Returns the contents of the flashvars variable
     '''
-    flashvarsmatch = re.search(r'.*?flashvars=\\"(?P<VideoData>.*)\\" *allowscriptaccess', youtubedata)
-    if not flashvarsmatch == None:
+    flashvarsmatch = re.match(r'.*?flashvars=\\"(?P<VideoData>.*)\\" *allowscriptaccess', youtubedata)
+    if flashvarsmatch == None:
+        Stuff = ''
+    else:
         Stuff = flashvarsmatch.group("VideoData")
     for iteration in range(0, 20):
         Stuff = urllib.parse.unquote(Stuff)
@@ -75,10 +85,13 @@ def getvideourl(DATA):
     Takes in the data from getyoutubeblob()
     Returns URLS as well as meta-information about the video if it's avaliable.
     '''
-    urlre = re.compile(r'[,=]url=(?P<VideoURL>http://.+?&id=.+?)((&quality=(?P<Quality>.+?)&)|&)(.*?&type=video/(?P<VideoType>.+?)(&|(;\+codecs="(?P<VideoCodecs>.*?)"&))(url=)?)?')
     urldata = dict()
-    for match in urlre.finditer(DATA):
-        urldata[match.group("VideoURL")] = [match.group("VideoType"), match.group("VideoCodecs"), match.group("Quality")]
+    for match in re.finditer(r'[,=]url=(?P<VideoURL>http://.+?&id=.+?)((&quality=(?P<Quality>.+?)&)|&)(.*?&type=video/(?P<VideoType>.+?)(&|(;\+codecs="(?P<VideoCodecs>.*?)"&))(url=)?)?', DATA):
+        datalist = [match.group("VideoURL"), match.group("VideoType"), match.group("VideoCodecs"), match.group("Quality")]
+        for item in datalist:
+            if item == None:
+                datalist[datalist.index(item)] = "N/A"
+        urldata[datalist[0]] = [datalist[1], datalist[2], datalist[3]]
     return urldata
 
 def getvideosize(URL):
@@ -106,7 +119,7 @@ def loadlaunchcommand(PATH):
         with open(PATH) as FILE:
             commanddict = dict()
             for line in FILE:
-                linematch = re.search(r'{(?P<Name>.+?)\|\|(?P<Command>.+)}', line)
+                linematch = re.match(r'{(?P<Name>.+?)\|\|(?P<Command>.+)}', line)
                 Name = linematch.group("Name")
                 Command = linematch.group("Command")
                 if Name == None:
