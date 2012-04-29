@@ -1,7 +1,7 @@
 Youget
 ------------------
 
-Youget is a tool to get information, download, and play Youtube videos. Written in Python and PyQt
+Youget is a tool to get information, download, and play Youtube videos. Written in Python 3 and PySide
 
 How to use this program:
 Launch Youget
@@ -22,7 +22,7 @@ If you want to modify the command text file, you can make your changes first the
 How to build this program:
 You need:
 Python 3.2.x
-PyQt 4.9.x
+PySide 1.1.x
 cxfreeze (Get it at http://cx-freeze.sourceforge.net/)
 
 Then run this command:

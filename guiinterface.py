@@ -14,7 +14,7 @@
     You should have received a copy of the GNU General Public License
     along with youget. If not, see <http://www.gnu.org/licenses/>.
 '''
-from PyQt4 import QtCore, QtGui
+from PySide import QtCore, QtGui
 import Youtube
 import urllib.request
 import time
@@ -137,13 +137,13 @@ class interface(QtGui.QMainWindow):
         self.cleardata()
         pagedata = Youtube.downloadpage(self.youtubeurlbox.text())
         if pagedata == 'Error_OpeningURL':
-            QtGui.QMessageBox.critical(self, "Error while retrieving page", "Could not connect to server with current URL.\nThe operation has aborted.", "OK")
+            QtGui.QMessageBox.critical(self, "Error while retrieving page", "Could not connect to server with current URL.\nThe operation has aborted.", QtGui.QMessageBox.Ok)
 
         elif pagedata == 'Error_ReadingData':
-            QtGui.QMessageBox.critical(self, "Error while retrieving page", "Could not download the page.\nThe operation has aborted.", "OK")
+            QtGui.QMessageBox.critical(self, "Error while retrieving page", "Could not download the page.\nThe operation has aborted.", QtGui.QMessageBox.Ok)
 
         elif pagedata == 'Error_DecodingData':
-            QtGui.QMessageBox.critical(self, "Error while processing page", "Could not decode the page.\nThe operation has aborted.", "OK")
+            QtGui.QMessageBox.critical(self, "Error while processing page", "Could not decode the page.\nThe operation has aborted.", QtGui.QMessageBox.Ok)
 
         else:
             metalist = Youtube.getmeta(pagedata)
@@ -198,20 +198,20 @@ class interface(QtGui.QMainWindow):
             self.clearcommandcombo()
             self.populatecommandcombo()
         else:
-            QtGui.QMessageBox.critical(self, "Error while loading command text file", "Unable to load the file from the current path.\nThe operation has aborted.", "OK")
+            QtGui.QMessageBox.critical(self, "Error while loading command text file", "Unable to load the file from the current path.\nThe operation has aborted.", QtGui.QMessageBox.Ok)
 
     def sendcommand(self):
         try:
             URL = self.urltable.item(self.urltable.currentRow(), 4).text()
         except:
-            QtGui.QMessageBox.critical(self, "Error while launching command", "No URL selected.\nThe operation has aborted.", "OK")
+            QtGui.QMessageBox.critical(self, "Error while launching command", "No URL selected.\nThe operation has aborted.", QtGui.QMessageBox.Ok)
             return None
         if self.commanddict:
             Command = self.commanddict[self.commandcombo.currentText()]
             Command = Command.replace("{URL}", URL)
             Youtube.launchcommand(Command)
         else:
-            QtGui.QMessageBox.critical(self, "Error while launching command", "The launch command file needs to be loaded.\nThe operation has aborted.", "OK")
+            QtGui.QMessageBox.critical(self, "Error while launching command", "The launch command file needs to be loaded.\nThe operation has aborted.", QtGui.QMessageBox.Ok)
 
     def populatecommandcombo(self):
         i = 0
@@ -234,22 +234,23 @@ class interface(QtGui.QMainWindow):
         try:
             URL = self.urltable.item(self.urltable.currentRow(), 4).text()
         except:
-            QtGui.QMessageBox.critical(self, "Error while downloading video", "No URL selected.\nThe operation has aborted.", "OK")
+            QtGui.QMessageBox.critical(self, "Error while downloading video", "No URL selected.\nThe operation has aborted.", QtGui.QMessageBox.Ok)
             return None
         newpath = QtGui.QFileDialog.getSaveFileName(self, "Choose a location to save the video", '', "All Files (*)")
         if newpath:
+            newpath = newpath[0]
             try:
                 newfile = open(newpath, mode='w')
                 newfile.close()
             except:
-                QtGui.QMessageBox.critical(self, "Error while downloading video", "Could not save the video to the specified location.\nThe operation has aborted.", "OK")
+                QtGui.QMessageBox.critical(self, "Error while downloading video", "Could not save the video to the specified location.\nThe operation has aborted.", QtGui.QMessageBox.Ok)
                 return None
             global Downloaddialog
             displaydownloaddialog()
             try:
                 urllib.request.urlretrieve(URL, filename=newpath, reporthook=Downloaddialog.updatebar)
             except:
-                QtGui.QMessageBox.critical(self, "Error while downloading video", "The operation failed while downloading.\nThe operation has aborted.", "OK")
+                QtGui.QMessageBox.critical(self, "Error while downloading video", "The operation failed while downloading.\nThe operation has aborted.", QtGui.QMessageBox.Ok)
                 Downloaddialog.close()
                 del Downloaddialog
 

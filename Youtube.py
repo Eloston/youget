@@ -22,6 +22,9 @@ import binascii
 import http.client
 import os.path
 import sys
+import html.parser
+
+parser = html.parser.HTMLParser()
 
 def downloadpage(URL):
     '''
@@ -46,6 +49,10 @@ def downloadpage(URL):
     youtubedata = youtubedata.replace('\n', '')
     return youtubedata
 
+def decodeHTMLescape(DATA):
+    global parser
+    return parser.unescape(DATA)
+
 def getmeta(youtubedata):
     '''
     Takes data from downloadpage()
@@ -57,10 +64,12 @@ def getmeta(youtubedata):
         title = "N/A"
     else:
         title = titlematch.group("Title")
+        title = decodeHTMLescape(title)
     if descriptionmatch == None:
         description = "N/A"
     else:
         description = descriptionmatch.group("Description")
+        description = decodeHTMLescape(description)
     return [title, description]
 
 def getflashvars(youtubedata):
