@@ -45,6 +45,40 @@ class interface(QtGui.QMainWindow):
         self.titlebox = QtGui.QLineEdit()
         self.titlebox.setReadOnly(True)
 
+        authorlabel = QtGui.QLabel("Author:")
+        self.authorbox = QtGui.QLineEdit()
+        self.authorbox.setReadOnly(True)
+
+        datelabel = QtGui.QLabel("Upload date:")
+        self.datebox = QtGui.QLineEdit()
+        self.datebox.setReadOnly(True)
+
+        viewslabel = QtGui.QLabel("Views:")
+        self.viewsbox = QtGui.QLineEdit()
+        self.viewsbox.setReadOnly(True)
+
+        AUVlayout = QtGui.QHBoxLayout()
+        AUVlayout.addWidget(authorlabel)
+        AUVlayout.addWidget(self.authorbox)
+        AUVlayout.addWidget(datelabel)
+        AUVlayout.addWidget(self.datebox)
+        AUVlayout.addWidget(viewslabel)
+        AUVlayout.addWidget(self.viewsbox)
+
+        likeslabel = QtGui.QLabel("Likes:")
+        self.likesbox = QtGui.QLineEdit()
+        self.likesbox.setReadOnly(True)
+
+        dislikeslabel = QtGui.QLabel("Dislikes:")
+        self.dislikesbox = QtGui.QLineEdit()
+        self.dislikesbox.setReadOnly(True)
+
+        ratinglayout = QtGui.QHBoxLayout()
+        ratinglayout.addWidget(likeslabel)
+        ratinglayout.addWidget(self.likesbox)
+        ratinglayout.addWidget(dislikeslabel)
+        ratinglayout.addWidget(self.dislikesbox)
+
         titlelayout = QtGui.QHBoxLayout()
         titlelayout.addWidget(titlelabel)
         titlelayout.addWidget(self.titlebox)
@@ -111,6 +145,8 @@ class interface(QtGui.QMainWindow):
         mainlayout.addLayout(youtubeurllayout)
         mainlayout.addLayout(databuttonlayout)
         mainlayout.addLayout(titlelayout)
+        mainlayout.addLayout(AUVlayout)
+        mainlayout.addLayout(ratinglayout)
         mainlayout.addLayout(descriptionlayout)
         mainlayout.addWidget(urltablelabel)
         mainlayout.addWidget(self.urltable)
@@ -129,6 +165,11 @@ class interface(QtGui.QMainWindow):
 
     def cleardata(self):
         self.titlebox.setText('')
+        self.authorbox.setText('')
+        self.datebox.setText('')
+        self.viewsbox.setText('')
+        self.likesbox.setText('')
+        self.dislikesbox.setText('')
         self.descriptionbox.setText('')
         self.urltable.clearContents()
         self.urltable.setRowCount(0)
@@ -147,14 +188,13 @@ class interface(QtGui.QMainWindow):
 
         else:
             metalist = Youtube.getmeta(pagedata)
-            if metalist[0] == None:
-                self.titlebox.setText("N/A")
-            else:
-                self.titlebox.setText(metalist[0])
-            if metalist[1] == None:
-                self.descriptionbox.setText("N/A")
-            else:
-                self.descriptionbox.setText(metalist[1])
+            self.titlebox.setText(metalist[0])
+            self.authorbox.setText(metalist[2])
+            self.datebox.setText(metalist[3])
+            self.viewsbox.setText(metalist[4])
+            self.likesbox.setText(metalist[5])
+            self.dislikesbox.setText(metalist[6])
+            self.descriptionbox.setText(metalist[1])
 
             urldict = Youtube.getvideourl(Youtube.getflashvars(pagedata))
             i = 0

@@ -56,21 +56,52 @@ def decodeHTMLescape(DATA):
 def getmeta(youtubedata):
     '''
     Takes data from downloadpage()
-    Retrieves title and description from data.
+    Retrieves title, description, author, upload date, views, likes, and dislikes from data.
     '''
     titlematch = re.search(r'<meta name="title" content="(?P<Title>.*?)">', youtubedata)
     descriptionmatch = re.search(r'<p id="eow-description"( )?>(?P<Description>.*?)</p>', youtubedata)
+    authormatch = re.search(r'class="yt-user-name author" rel="author" dir="ltr"( )?>(?P<Author>.*?)</a>', youtubedata)
+    datematch = re.search(r'<span id="eow-date" class="watch-video-date"( )?>(?P<Date>.*?)</span>', youtubedata)
+    viewsmatch = re.search(r'<span class="watch-view-count">( )*?<strong>(?P<Views>.*?)</strong>', youtubedata)
+    likesmatch = re.search(r'<span class="likes"( )?>(?P<Likes>.*?)</span>', youtubedata)
+    dislikesmatch = re.search(r'<span class="dislikes"( )?>(?P<Dislikes>.*?)</span>', youtubedata)
+
     if titlematch == None:
         title = "N/A"
     else:
-        title = titlematch.group("Title")
-        title = decodeHTMLescape(title)
+        title = decodeHTMLescape(titlematch.group("Title"))
+
     if descriptionmatch == None:
         description = "N/A"
     else:
-        description = descriptionmatch.group("Description")
-        description = decodeHTMLescape(description)
-    return [title, description]
+        description = decodeHTMLescape(descriptionmatch.group("Description"))
+
+    if authormatch == None:
+        author = "N/A"
+    else:
+        author = decodeHTMLescape(authormatch.group("Author"))
+
+    if datematch == None:
+        date = "N/A"
+    else:
+        date = decodeHTMLescape(datematch.group("Date"))
+
+    if viewsmatch == None:
+        views = "N/A"
+    else:
+        views = decodeHTMLescape(viewsmatch.group("Views"))
+
+    if likesmatch == None:
+        likes = "N/A"
+    else:
+        likes = decodeHTMLescape(likesmatch.group("Likes"))
+
+    if dislikesmatch == None:
+        dislikes = "N/A"
+    else:
+        dislikes = decodeHTMLescape(dislikesmatch.group("Dislikes"))
+
+    return [title, description, author, date, views, likes, dislikes]
 
 def getflashvars(youtubedata):
     '''
@@ -129,6 +160,9 @@ def loadlaunchcommand(PATH):
             commanddict = dict()
             for line in FILE:
                 linematch = re.match(r'{(?P<Name>.+?)\|\|(?P<Command>.+)}', line)
+                if linematch == None:
+                    commanddict["Nothing loaded"] = ''
+                    return commanddict
                 Name = linematch.group("Name")
                 Command = linematch.group("Command")
                 if Name == None:
