@@ -138,12 +138,19 @@ def getvideosize(URL):
     '''
     Returns the size of the video URL via HTTP header
     '''
-    host = urllib.parse.urlparse(URL)
-    connectionobject = http.client.HTTPConnection(host.netloc)
-    connectionobject.request("HEAD", URL)
-    responseobject = connectionobject.getresponse()
-    length = responseobject.getheader('Content-Length')
-    connectionobject.close()
+    try:
+        host = urllib.parse.urlparse(URL)
+        connectionobject = http.client.HTTPConnection(host.netloc)
+        connectionobject.request("HEAD", URL)
+        responseobject = connectionobject.getresponse()
+        length = responseobject.getheader('Content-Length')
+        connectionobject.close()
+    except:
+        try:
+            connectionobject.close()
+        except:
+            pass
+        length = None
     return length
 
 def programfile_path(FILENAME):

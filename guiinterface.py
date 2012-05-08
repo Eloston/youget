@@ -141,6 +141,11 @@ class interface(QtGui.QMainWindow):
 
         self.advancedlayouthidden = True
 
+        self.progressbar = QtGui.QProgressBar()
+        self.progressbar.setRange(0, 100)
+        self.progressbar.setValue(0)
+        self.progressbar.hide()
+
         mainlayout = QtGui.QVBoxLayout()
         mainlayout.addLayout(youtubeurllayout)
         mainlayout.addLayout(databuttonlayout)
@@ -153,6 +158,7 @@ class interface(QtGui.QMainWindow):
         mainlayout.addWidget(downloadvideobutton)
         mainlayout.addWidget(advancedlayoutbutton)
         mainlayout.addWidget(self.advancedlayoutwidget)
+        mainlayout.addWidget(self.progressbar)
 
         mainlayoutwidget = QtGui.QWidget()
         mainlayoutwidget.setLayout(mainlayout)
@@ -162,6 +168,27 @@ class interface(QtGui.QMainWindow):
 
         self.setCentralWidget(mainlayoutwidget)
         self.setWindowTitle(ToolName)
+
+    def updatedownload(self, count, blockSize, totalSize):
+        percent = int(count*blockSize*100/totalSize)
+        self.progressbar.setValue(percent)
+        self.setWindowTitle(''.join([ToolName, " - Downloading Video, ", str(percent), "%"]))
+        if percent >= 100:
+            time.sleep(1)
+            self.progressbar.setValue(0)
+            self.setWindowTitle(ToolName)
+            self.progressbar.hide()
+
+    def updatedata(self, completed, message, total):
+        global ToolName
+        percent = int((completed/total)*100)
+        self.progressbar.setValue(percent)
+        self.setWindowTitle(''.join([ToolName, " - ", str(message)]))
+        if percent >= 100:
+            time.sleep(1)
+            self.progressbar.setValue(0)
+            self.setWindowTitle(ToolName)
+            self.progressbar.hide()
 
     def cleardata(self):
         self.titlebox.setText('')
@@ -175,18 +202,33 @@ class interface(QtGui.QMainWindow):
         self.urltable.setRowCount(0)
 
     def getdata(self):
+        self.progressbar.show()
+        TotalStages = 3
+        Stage = 0
         self.cleardata()
+        self.updatedata(Stage, "Downloading Youtube page", TotalStages)
         pagedata = Youtube.downloadpage(self.youtubeurlbox.text())
         if pagedata == 'Error_OpeningURL':
+            self.progressbar.hide()
+            self.progressbar.setValue(0)
+            self.setWindowTitle(ToolName)
             QtGui.QMessageBox.critical(self, "Error while retrieving page", "Could not connect to server with current URL.\nThe operation has aborted.", QtGui.QMessageBox.Ok)
 
         elif pagedata == 'Error_ReadingData':
+            self.progressbar.hide()
+            self.progressbar.setValue(0)
+            self.setWindowTitle(ToolName)
             QtGui.QMessageBox.critical(self, "Error while retrieving page", "Could not download the page.\nThe operation has aborted.", QtGui.QMessageBox.Ok)
 
         elif pagedata == 'Error_DecodingData':
+            self.progressbar.hide()
+            self.progressbar.setValue(0)
+            self.setWindowTitle(ToolName)
             QtGui.QMessageBox.critical(self, "Error while processing page", "Could not decode the page.\nThe operation has aborted.", QtGui.QMessageBox.Ok)
 
         else:
+            Stage = Stage + 1
+            self.updatedata(Stage, "Retrieving metadata", TotalStages)
             metalist = Youtube.getmeta(pagedata)
             self.titlebox.setText(metalist[0])
             self.authorbox.setText(metalist[2])
@@ -196,9 +238,17 @@ class interface(QtGui.QMainWindow):
             self.dislikesbox.setText(metalist[6])
             self.descriptionbox.setText(metalist[1])
 
+            Stage = Stage + 1
+            self.updatedata(Stage, "Retrieving Youtube video URLs and data", TotalStages)
             urldict = Youtube.getvideourl(Youtube.getflashvars(pagedata))
             i = 0
+            NumURLs = len(list(urldict))
+            if NumURLs == 0:
+                progressincrement = 1
+            else:
+                progressincrement = 1/NumURLs
             for URL in iter(urldict):
+                self.updatedata(Stage, ''.join(["Inserting URL #", str(i+1), " of ", str(NumURLs)]), TotalStages)
                 URLItem = QtGui.QTableWidgetItem(str(URL))
                 TypeItem = QtGui.QTableWidgetItem(str((urldict[URL])[0]))
                 CodecItem = QtGui.QTableWidgetItem(str((urldict[URL])[1]))
@@ -221,16 +271,18 @@ class interface(QtGui.QMainWindow):
                 self.urltable.setItem(i, 2, TypeItem)
                 self.urltable.setItem(i, 3, CodecItem)
                 self.urltable.setItem(i, 4, URLItem)
+                Stage = Stage + progressincrement
                 i = i+1
-            QtGui.QMessageBox.information(self, "Operation completed", "The youtube video data has been retrieved sucessfully.")
+            self.updatedata(TotalStages, "Done", TotalStages)
+            QtGui.QMessageBox.information(self, "Operation completed", "The Youtube video data has been retrieved sucessfully.")
 
     def displayitem(self):
         self.displayitemdialog = DisplayText(self.urltable.currentItem().text())
 
     def getcommandfilepath(self):
         newpath = QtGui.QFileDialog.getOpenFileName(self, "Choose the command text file", '', "All Files (*);;Text Files (*.txt)")
-        if newpath:
-            self.commandfilepath.setText(newpath)
+        if newpath[0]:
+            self.commandfilepath.setText(newpath[0])
 
     def loadcommandfile(self):
         self.commanddict = Youtube.loadlaunchcommand(self.commandfilepath.text())
@@ -277,7 +329,7 @@ class interface(QtGui.QMainWindow):
             QtGui.QMessageBox.critical(self, "Error while downloading video", "No URL selected.\nThe operation has aborted.", QtGui.QMessageBox.Ok)
             return None
         newpath = QtGui.QFileDialog.getSaveFileName(self, "Choose a location to save the video", '', "All Files (*)")
-        if newpath:
+        if newpath[0]:
             newpath = newpath[0]
             try:
                 newfile = open(newpath, mode='w')
@@ -285,41 +337,14 @@ class interface(QtGui.QMainWindow):
             except:
                 QtGui.QMessageBox.critical(self, "Error while downloading video", "Could not save the video to the specified location.\nThe operation has aborted.", QtGui.QMessageBox.Ok)
                 return None
-            global Downloaddialog
-            displaydownloaddialog()
+            self.progressbar.show()
             try:
-                urllib.request.urlretrieve(URL, filename=newpath, reporthook=Downloaddialog.updatebar)
+                urllib.request.urlretrieve(URL, filename=newpath, reporthook=self.updatedownload)
             except:
+                self.progressbar.hide()
+                self.progressbar.setValue(0)
+                self.setWindowTitle(ToolName)
                 QtGui.QMessageBox.critical(self, "Error while downloading video", "The operation failed while downloading.\nThe operation has aborted.", QtGui.QMessageBox.Ok)
-                Downloaddialog.close()
-                del Downloaddialog
-
-class downloadprogress(QtGui.QDialog):
-    def __init__(self):
-        super(downloadprogress, self).__init__()
-
-        infolabel = QtGui.QLabel("Download Progress:")
-
-        self.downloadbar = QtGui.QProgressBar()
-        self.downloadbar.setRange(0, 100)
-        self.downloadbar.setValue(0)
-
-        mainlayout = QtGui.QVBoxLayout()
-        mainlayout.addWidget(infolabel)
-        mainlayout.addWidget(self.downloadbar)
-
-        self.setLayout(mainlayout)
-
-        self.setWindowTitle("Downloading Youtube video...")
-
-        self.show()
-
-    def updatebar(self, count, blockSize, totalSize):
-        percent = int(count*blockSize*100/totalSize)
-        self.downloadbar.setValue(percent)
-        if percent >= 100:
-            time.sleep(1)
-            self.close()
 
 class DisplayText(QtGui.QDialog):
     def __init__(self, Message):
@@ -390,15 +415,9 @@ def exceptionhookstart(*args):
     ExceptionDialog = GeneralExceptiondialog(*args)
     ExceptionDialog.show()
 
-def displaydownloaddialog():
-    global Downloaddialog
-    Downloaddialog = downloadprogress()
-
 ToolName = "Youget"
 
 ExceptionDialog = None
-
-Downloaddialog = False
 
 if __name__ == '__main__':
     import sys
