@@ -163,22 +163,25 @@ def programfile_path(FILENAME):
 
 def loadlaunchcommand(PATH):
     if os.path.isfile(PATH):
-        with open(PATH) as FILE:
-            commanddict = dict()
-            for line in FILE:
-                linematch = re.match(r'{(?P<Name>.+?)\|\|(?P<Command>.+)}', line)
-                if linematch == None:
-                    commanddict["Nothing loaded"] = ''
-                    return commanddict
-                Name = linematch.group("Name")
-                Command = linematch.group("Command")
-                if Name == None:
-                    Name = "(Unnamed command)"
-                if Command == None:
-                    Name = Name + "(command broken)"
-                    Command = ''
-                commanddict[Name] = Command
-            return commanddict
+        try:
+            with open(PATH) as FILE:
+                commanddict = dict()
+                for line in FILE:
+                    linematch = re.match(r'{(?P<Name>.+?)\|\|(?P<Command>.+)}', line)
+                    if linematch == None:
+                        commanddict["Nothing loaded"] = ''
+                        return commanddict
+                    Name = linematch.group("Name")
+                    Command = linematch.group("Command")
+                    if Name == None:
+                        Name = "(Unnamed command)"
+                    if Command == None:
+                        Name = Name + "(command broken)"
+                        Command = ''
+                    commanddict[Name] = Command
+                return commanddict
+        except:
+            return None
     else:
         return None
 

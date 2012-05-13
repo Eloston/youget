@@ -290,6 +290,7 @@ class interface(QtGui.QMainWindow):
             self.clearcommandcombo()
             self.populatecommandcombo()
         else:
+            self.clearcommandcombo()
             QtGui.QMessageBox.critical(self, "Error while loading command text file", "Unable to load the file from the current path.\nThe operation has aborted.", QtGui.QMessageBox.Ok)
 
     def sendcommand(self):
