@@ -25,13 +25,31 @@ import sys
 import html.parser
 
 parser = html.parser.HTMLParser()
+# Global vars
+youtubetemplate = "http://www.youtube.com/watch?v="
 
-def downloadpage(URL):
+def getvideoid(INPUT):
+    '''
+    Extracts the video ID from the given URL and returns the video ID
+    '''
+    regexps = [r'(http(s?)://)?www.youtube.com/watch\?.*?v=(?P<VideoID>.{11})', r'(http(s?)://)?youtu.be/(?P<VideoID>.{11})', r'(http(s?)://)www.youtube(-nocookie)?.com/embed/(?P<VideoID>.{11})', r'(http(s?)://)www.youtube(-nocookie)?.com/v/(?P<VideoID>.{11})']
+    for urltype in regexps:
+        inmatch = re.search(urltype, INPUT)
+        if inmatch:
+            return inmatch.group('VideoID')
+    if len(INPUT) == 11:
+        # Most likely a video ID
+        return INPUT
+    else:
+        # Couldn't parse what user put in
+        return None
+
+def downloadpage(ID):
     '''
     Downloads the page at the URL
     '''
     try:
-        youtubeobj = urllib.request.urlopen(URL)
+        youtubeobj = urllib.request.urlopen(youtubetemplate + ID)
     except:
         return 'Error_OpeningURL'
     try:

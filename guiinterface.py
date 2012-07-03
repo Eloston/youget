@@ -25,7 +25,7 @@ class interface(QtGui.QMainWindow):
 
         global ToolName
 
-        youtubeurllabel = QtGui.QLabel("Youtube URL:")
+        youtubeurllabel = QtGui.QLabel("Youtube URL or ID:")
         self.youtubeurlbox = QtGui.QLineEdit()
 
         youtubeurllayout = QtGui.QHBoxLayout()
@@ -207,7 +207,15 @@ class interface(QtGui.QMainWindow):
         Stage = 0
         self.cleardata()
         self.updatedata(Stage, "Downloading Youtube page", TotalStages)
-        pagedata = Youtube.downloadpage(self.youtubeurlbox.text())
+        videoid = Youtube.getvideoid(self.youtubeurlbox.text())
+        if videoid == None:
+            self.progressbar.hide()
+            self.progressbar.setValue(0)
+            self.setWindowTitle(ToolName)
+            QtGui.QMessageBox.critical(self, "Error while retrieving page", "The input in the URL/ID box could not be processed.", QtGui.QMessageBox.Ok)
+            return None
+        self.youtubeurlbox.setText(videoid)
+        pagedata = Youtube.downloadpage(videoid)
         if pagedata == 'Error_OpeningURL':
             self.progressbar.hide()
             self.progressbar.setValue(0)
