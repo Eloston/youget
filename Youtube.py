@@ -144,7 +144,7 @@ def getvideourl(DATA):
     Returns URLS as well as meta-information about the video if it's avaliable.
     '''
     urldata = dict()
-    for match in re.finditer(r'[,=]url=(?P<VideoURL>http://.+?&id=.+?)((&quality=(?P<Quality>.+?)&)|&)(.*?&type=video/(?P<VideoType>.+?)(&|(;\+codecs="(?P<VideoCodecs>.*?)"&))(url=)?)?', DATA):
+    for match in re.finditer(r'[,=]url=(?P<VideoURL>http://.+?)(&quality=(?P<Quality>.+?)&)(.*?&type=video/(?P<VideoType>.+?)((;\+codecs="(?P<VideoCodecs>.+?)"&)|&)(url=)?)?', DATA):
         datalist = [match.group("VideoURL"), match.group("VideoType"), match.group("VideoCodecs"), match.group("Quality")]
         for item in datalist:
             if item == None:
